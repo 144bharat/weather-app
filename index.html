@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="app.css">
+ 
+</head>
+<body>
+    <div class="container">
+        
+        <div class="Title">
+            <p>weather info</p>
+            <input type="text" id="search" placeholder="Enter the city">
+            
+        
+            <div class="location-icon">
+                <img src="location.png" alt="">
+            </div>
+        </div>
+
+        <div class="weather-icon">
+            <img src="unknown.png" alt="">
+        </div>
+        
+        <div class="tmpValue">
+            <p>-&#176;<span>C</span></p>
+        </div>
+        
+        <div class="tmpDescript">
+            <p>-</p>
+        </div>
+        
+        <div class="location">
+            <p>-</p>
+        </div>
+        
+    </div>
+   
+</body>
+</html>
+<!--<script href="weather.js"></script>-->
+<script>
+    const iconElement=document.querySelector(".weather-icon")
+const locationIcon=document.querySelector(".location-icon")
+const tempElement=document.querySelector(".tmpValue p")
+const descElement=document.querySelector(".tmpDescript p")
+const locationElement=document.querySelector(".location p")
+const notificationElement=document.querySelector(".notification")
+var input=document.querySelector("#search")
+let city=""
+let latitude=0.0
+let longitude=0.0
+
+input.addEventListener("keyup",function(event){
+    if(event.keyCode===13)
+    {
+        event.preventDefault();
+        city=input.value;
+        getSearchWeather(city);
+        console.log(city);
+    }
+})
+const weather={}
+weather.temprature={
+    unit:"celsius"
+}
+const KELVIN=273;
+const key=`23729b885486b8c22b3f987150546dab`;
+if("geolocation" in navigator)
+{
+    navigator.geolocation.getCurrentPosition(setPosition,showError);
+}
+else{
+    notificationElement.style.display="block";
+    notificationElement.innerHTML="<p> Browser doesnt support geolocation </p>";
+}
+function setPosition(position)
+{
+    latitude=position.coords.latitude;
+    longitude=position.coords.longitude;
+    getWeather(latitude,longitude);
+}
+locationIcon.addEventListener("click",function(event){
+    console.log("hey");
+    getWeather(latitude,longitude);
+})
+
+function showError(error)
+{
+    notificationElement.style.display="block";
+    notificationElement.innerHTML=`<p>${error.message}</p>`;
+}
+
+function getSearchWeather(city)
+{
+    let api=`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}`
+    
+    fetch(api)
+        .then(function (response){
+            let data=response.json();
+            console.log(data);
+            return data;
+        })
+        .then(function (data){
+            weather.temprature.value=Math.floor(data.main.temp -KELVIN);
+            weather.description=data.weather[0].description;
+            weather.iconId=data.weather[0].icon;
+            weather.city=data.name;
+            weather.country=data.sys.country;
+        })
+        .then(function (){
+            displayWeather();
+        })
+}
+
+function getWeather(latitude,longitude)
+{
+    let api=`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${key}`;
+
+    fetch(api)
+    .then(function (response){
+        let data=response.json()
+        return data
+    })
+    .then(function (data){
+        weather.temprature.value=Math.floor(data.main.temp -KELVIN)
+        weather.description=data.weather[0].description
+        weather.iconId=data.weather[0].icon
+        weather.city=data.name
+        weather.country=data.sys.country
+    })
+    .then(function (){
+        displayWeather()
+    })
+}
+function displayWeather(){
+    iconElement.innerHTML=`<img src="https://openweathermap.org/img/wn/${weather.iconId}.png">`
+    tempElement.innerHTML=`${weather.temprature.value} &#176;<span>C</span>`
+    descElement.innerHTML=weather.description
+    locationElement.innerHTML=`${weather.city},${weather.country}`
+}
+</script>
